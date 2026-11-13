@@ -3,13 +3,14 @@
 Student : Dhruv Talavat
 SRN     : PES1UG24AM087
 
-The fuzz tests below feed arbitrary text (and None) into every input handling
-function of pizza_order.py.  A fuzz test fails the moment the function raises an
-unexpected exception instead of returning a value, which is exactly what the
-original buggy module did.
+Step 3 of the handout: use Hypothesis to uncover edge cases automatically for
+all three functions (toppings_price, pizza_inches, split_bill).  Each property
+follows the handout pattern - the function is called inside try/except and any
+exception is reported as a failure - so the fuzzer stops at the first input
+that crashes the application.
 
 Run:
-    python -m pytest test_pizza_order.py -q
+    python -m pytest test_pizza_order.py
 """
 
 import pytest
@@ -23,21 +24,30 @@ from pizza_order import SIZES, pizza_inches, split_bill, toppings_price
 # --------------------------------------------------------------------------
 @given(st.text() | st.none())
 def test_toppings_price_no_crash(s):
-    result = toppings_price(s)
+    try:
+        result = toppings_price(s)
+    except Exception as e:
+        assert False, f"toppings_price crashed with: {e!r}"
     assert isinstance(result, int)
     assert result >= 0
 
 
 @given(st.text() | st.none())
 def test_pizza_inches_no_crash(s):
-    result = pizza_inches(s)
+    try:
+        result = pizza_inches(s)
+    except Exception as e:
+        assert False, f"pizza_inches crashed with: {e!r}"
     assert isinstance(result, int)
     assert result in set(SIZES.values()) | {0}
 
 
 @given(st.text() | st.none())
 def test_split_bill_no_crash(s):
-    result = split_bill(s)
+    try:
+        result = split_bill(s)
+    except Exception as e:
+        assert False, f"split_bill crashed with: {e!r}"
     assert isinstance(result, float)
     assert result >= 0
 
